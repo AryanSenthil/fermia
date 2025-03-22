@@ -1,6 +1,6 @@
 import sys
 from langchain_ollama import OllamaLLM
-
+import time 
 import fermia_camera
 
 def camera_vision(prompt: str) -> str:
@@ -16,7 +16,10 @@ def camera_vision(prompt: str) -> str:
     
     try:
         # Capture frame from stream and get base64 string
-        base64_image = fermia_camera.get_base64_image()
+        for _ in range(5):
+            base64_image = fermia_camera.get_base64_image()
+            time.sleep(0.05)
+
         if base64_image is None:
             return "Failed to capture image from stream."
             
