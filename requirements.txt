@@ -6,4 +6,6 @@ langchain
 langchain-ollama
 flask
 build
-spur 
+spur
+pytest
+pytest-mock
