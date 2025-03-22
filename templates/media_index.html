@@ -1,0 +1,287 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .media-section {
+            margin-bottom: 30px;
+        }
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .media-item {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .media-item:hover {
+            transform: translateY(-5px);
+        }
+        .media-item img, .media-item video {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .media-info {
+            padding: 10px;
+        }
+        .media-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .media-date, .media-size {
+            font-size: 0.8em;
+            color: #666;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #eee;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background: #007bff;
+            color: white;
+        }
+        .media-content {
+            display: none;
+        }
+        .media-content.active {
+            display: block;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+        }
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90%;
+        }
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ title }}</h1>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="all">All</div>
+            <div class="tab" data-tab="photos">Photos</div>
+            <div class="tab" data-tab="videos">Videos</div>
+        </div>
+        
+        <div id="all-content" class="media-content active">
+            {% if photos or videos %}
+                {% if photos %}
+                <div class="media-section">
+                    <h2>Photos ({{ photos|length }})</h2>
+                    <div class="media-grid">
+                        {% for photo in photos %}
+                            <div class="media-item photo-item" data-src="/photos/{{ photo.name }}">
+                                <img src="/photos/{{ photo.name }}" alt="{{ photo.name }}">
+                                <div class="media-info">
+                                    <div class="media-name">{{ photo.name }}</div>
+                                    <div class="media-date">{{ photo.date }}</div>
+                                    <div class="media-size">{{ photo.size }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if videos %}
+                <div class="media-section">
+                    <h2>Videos ({{ videos|length }})</h2>
+                    <div class="media-grid">
+                        {% for video in videos %}
+                            <div class="media-item video-item" data-src="/videos/{{ video.name }}">
+                                <video src="/videos/{{ video.name }}" preload="metadata"></video>
+                                <div class="media-info">
+                                    <div class="media-name">{{ video.name }}</div>
+                                    <div class="media-date">{{ video.date }}</div>
+                                    <div class="media-size">{{ video.size }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No media files found.</p>
+            {% endif %}
+        </div>
+        
+        <div id="photos-content" class="media-content">
+            {% if photos %}
+                <div class="media-section">
+                    <h2>Photos ({{ photos|length }})</h2>
+                    <div class="media-grid">
+                        {% for photo in photos %}
+                            <div class="media-item photo-item" data-src="/photos/{{ photo.name }}">
+                                <img src="/photos/{{ photo.name }}" alt="{{ photo.name }}">
+                                <div class="media-info">
+                                    <div class="media-name">{{ photo.name }}</div>
+                                    <div class="media-date">{{ photo.date }}</div>
+                                    <div class="media-size">{{ photo.size }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <p>No photos found.</p>
+            {% endif %}
+        </div>
+        
+        <div id="videos-content" class="media-content">
+            {% if videos %}
+                <div class="media-section">
+                    <h2>Videos ({{ videos|length }})</h2>
+                    <div class="media-grid">
+                        {% for video in videos %}
+                            <div class="media-item video-item" data-src="/videos/{{ video.name }}">
+                                <video src="/videos/{{ video.name }}" preload="metadata"></video>
+                                <div class="media-info">
+                                    <div class="media-name">{{ video.name }}</div>
+                                    <div class="media-date">{{ video.date }}</div>
+                                    <div class="media-size">{{ video.size }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <p>No videos found.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Modal for viewing media -->
+    <div id="mediaModal" class="modal">
+        <span class="close">&times;</span>
+        <img id="modalImage" class="modal-content">
+        <video id="modalVideo" class="modal-content" controls></video>
+    </div>
+    
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Update active tab
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Show corresponding content
+                document.querySelectorAll('.media-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                const tabName = tab.getAttribute('data-tab');
+                if (tabName === 'all') {
+                    document.getElementById('all-content').classList.add('active');
+                } else if (tabName === 'photos') {
+                    document.getElementById('photos-content').classList.add('active');
+                } else if (tabName === 'videos') {
+                    document.getElementById('videos-content').classList.add('active');
+                }
+            });
+        });
+        
+        // Modal for viewing photos
+        const modal = document.getElementById('mediaModal');
+        const modalImg = document.getElementById('modalImage');
+        const modalVideo = document.getElementById('modalVideo');
+        const closeBtn = document.getElementsByClassName('close')[0];
+        
+        // Load and display video thumbnails
+        document.querySelectorAll('.video-item video').forEach(video => {
+            video.addEventListener('loadedmetadata', function() {
+                this.currentTime = 1; // Seek to 1 second to get a thumbnail
+            });
+        });
+        
+        // Handle photo clicks
+        document.querySelectorAll('.photo-item').forEach(item => {
+            item.addEventListener('click', function() {
+                modal.style.display = 'flex';
+                modalImg.style.display = 'block';
+                modalVideo.style.display = 'none';
+                modalImg.src = this.getAttribute('data-src');
+            });
+        });
+        
+        // Handle video clicks
+        document.querySelectorAll('.video-item').forEach(item => {
+            item.addEventListener('click', function() {
+                modal.style.display = 'flex';
+                modalImg.style.display = 'none';
+                modalVideo.style.display = 'block';
+                modalVideo.src = this.getAttribute('data-src');
+                modalVideo.play();
+            });
+        });
+        
+        // Close modal
+        closeBtn.addEventListener('click', function() {
+            modal.style.display = 'none';
+            modalVideo.pause();
+        });
+        
+        // Also close when clicking outside the modal content
+        modal.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+                modalVideo.pause();
+            }
+        });
+    </script>
+</body>
+</html>
+            

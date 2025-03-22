@@ -451,7 +451,7 @@ def start_recording():
     
     # Generate a unique filename with timestamp
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"depth_video_{timestamp}.avi"
+    filename = f"depth_video_{timestamp}.mp4"
     video_path = os.path.join("videos", filename)
     frame_rate = 6.0
     
@@ -524,9 +524,4 @@ if __name__ == "__main__":
     capture_thread = threading.Thread(target=capture_frames)
     capture_thread.daemon = True
     capture_thread.start()
-    
-    # Start the Flask server
-    print("Starting depth stream web server. Access the stream at:")
-    print("- Local:   http://localhost:5000")
-    print("- Network: http://<your-ip-address>:5000")
     app.run(host='0.0.0.0', port=5001, debug=False, threaded=True)

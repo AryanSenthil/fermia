@@ -6,3 +6,4 @@ langchain
 langchain-ollama
 flask
 build
+spur 
