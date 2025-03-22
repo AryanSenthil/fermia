@@ -1,0 +1,8 @@
+numpy
+pyrealsense2
+redis 
+opencv-python
+langchain
+langchain-ollama
+flask
+build
