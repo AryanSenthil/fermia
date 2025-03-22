@@ -73,9 +73,9 @@ Thumbs.db
 # ------------------------------
 
 # Ignore contents of videos and photos, but keep folders
-fermia_camera/videos/*
-fermia_camera/photos/*
+fermia/videos/*
+fermia/photos/*
 
 # Except keep the folders themselves
-!fermia_camera/videos/.gitkeep
-!fermia_camera/photos/.gitkeep
+!fermia/videos/.gitkeep
+!fermia/photos/.gitkeep
