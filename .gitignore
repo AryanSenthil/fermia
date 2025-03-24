@@ -1,7 +1,6 @@
 # ------------------------------
 # Global ignores
 # ------------------------------
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -69,17 +68,29 @@ target/
 Thumbs.db
 
 # ------------------------------
-# fermia_camera folder rules
+# Media files
 # ------------------------------
-
 # Ignore contents of videos and photos, but keep folders
-fermia/videos/*
-fermia/photos/*
+/photos/*
+/videos/*
 
 # Except keep the folders themselves
-!fermia/videos/.gitkeep
-!fermia/photos/.gitkeep
+!/photos/.gitkeep
+!/videos/.gitkeep
 
+# Explicitly ignore media file types
+*.jpg
+*.jpeg
+*.png
+*.avi
+*.mp4
+*.mov
 
-fermia/photos/*.jpg
-fermia/videos/*.avi
+# ------------------------------
+# fermia_camera folder rules
+# ------------------------------
+# If you still have fermia folder with media
+/fermia_camera/photos/*
+/fermia_camera/videos/*
+!/fermia_camera/photos/.gitkeep
+!/fermia_camera/videos/.gitkeep
