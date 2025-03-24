@@ -1,3 +1,4 @@
+# depth_stream.py
 import cv2
 import fermia_camera
 import threading
@@ -22,6 +23,8 @@ recording_thread = None
 record_stop_event = threading.Event()
 video_writer = None
 video_path = None
+
+
 
 def capture_frames():
     global frame
@@ -180,9 +183,9 @@ def stop_recording():
         "filename": os.path.basename(video_path) if video_path else "unknown"
     })
 
+capture_thread = threading.Thread(target=capture_frames)
+capture_thread.daemon = True
+capture_thread.start()
+
 if __name__ == "__main__":
-    # Start the camera capture thread
-    capture_thread = threading.Thread(target=capture_frames)
-    capture_thread.daemon = True
-    capture_thread.start()
     app.run(host='0.0.0.0', port=5001, debug=False, threaded=True)

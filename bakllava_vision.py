@@ -34,15 +34,3 @@ def camera_vision(prompt: str) -> str:
     except Exception as e:
         error_msg = f"Error processing image with LLM: {e}"
         return error_msg
-
-def main():
-    if len(sys.argv) != 2:
-        print("Usage: python3 bakllava_vision.py \"<prompt>\"")
-        sys.exit(1)
-        
-    prompt = sys.argv[1]
-    response = camera_vision(prompt)
-    print(response)
-
-if __name__ == "__main__":
-    main()

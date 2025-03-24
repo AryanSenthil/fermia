@@ -7,8 +7,8 @@ from datetime import datetime
 app = Flask(__name__)
 
 # Configure directories
-PHOTOS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'photos')
-VIDEOS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'videos')
+PHOTOS_DIR = "/home/arisenthil/fermia/photos"
+VIDEOS_DIR = "/home/arisenthil/fermia/videos"
 
 # Ensure correct MIME types are registered
 mimetypes.add_type('video/mp4', '.mp4')
@@ -43,7 +43,7 @@ def get_media_files(directory):
     return files
 
 @app.route('/')
-def index():
+def index():  
     """Main page showing photos and videos."""
     photos = get_media_files(PHOTOS_DIR)
     videos = get_media_files(VIDEOS_DIR)

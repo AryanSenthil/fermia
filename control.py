@@ -26,14 +26,8 @@ class Program:
         """ Runs a command with an input variable locally and returns the output."""
         result = subprocess.run(shlex.split(command), capture_output=True, text=True)
         return result.stdout
-    
+
     def spawn_command(self, command):
-        """ Spawns a long-running process locally. """
-        # Check if command is already a list
-        if isinstance(command, list):
-            process = subprocess.Popen(command)
-        else:
-            # If it's a string, split it
-            process = subprocess.Popen(shlex.split(command))
-        time.sleep(1)  
-        return process
+        """ Spawns a long running process locally."""
+        result = subprocess.Popen(command)
+        return result

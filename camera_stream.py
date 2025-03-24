@@ -187,10 +187,12 @@ def stop_recording():
         "filename": os.path.basename(video_path) if video_path else "unknown"
     })
 
+# Start the camera capture thread
+capture_thread = threading.Thread(target=capture_frames)
+capture_thread.daemon = True
+capture_thread.start()
+
+
 if __name__ == "__main__":
-    # Start the camera capture thread
-    capture_thread = threading.Thread(target=capture_frames)
-    capture_thread.daemon = True
-    capture_thread.start()
     
     app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)

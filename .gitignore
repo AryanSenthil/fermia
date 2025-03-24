@@ -79,3 +79,7 @@ fermia/photos/*
 # Except keep the folders themselves
 !fermia/videos/.gitkeep
 !fermia/photos/.gitkeep
+
+
+fermia/photos/*.jpg
+fermia/videos/*.avi
