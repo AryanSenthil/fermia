@@ -7,7 +7,12 @@ import os
 import subprocess
 import signal
 import socket
+from typing import Literal, Optional
+from prompt import fermia_prompt
 
+from servo.servo import ServoController
+
+servo = ServoController()
 
 # Function used by tools - is_realsense_connected()
 def is_realsense_connected():
@@ -83,7 +88,7 @@ def camera_feed() -> str:
 
     # Check if the RealSense camera is connected 
     if not is_realsense_connected():
-        stop_process_on_port(5001)
+        stop_process_on_port(5000)
         return "No Camera Detected."
     
     # Camera is detected, check if stream is already running 
@@ -105,7 +110,7 @@ def camera_feed() -> str:
         
         # Give it a moment to start 
         time.sleep(2) 
-    return f"http://{device_ip}:5000"
+    return f"[Click here](http://{device_ip}:5000)"
 
 
 @tool
@@ -140,17 +145,69 @@ def depth_feed() -> str:
         
         # Give it a moment to start 
         time.sleep(2) 
-    return f"http://{device_ip}:5000"
+    return f"[Click here](http://{device_ip}:5001)"
 
 
 
-# @tool
-# def photos_feed() -> str:
-#     """
-#     Provides access to the robot's photo storage and management interface.
-#     Returns the URL of the web app where captured photos can be viewed, managed, or downloaded.
-#     """
-#     return f"http://{device_ip}:5002"
+@tool
+def photos_feed() -> str:
+    """
+    Provides access to the robot's photo storage and management interface is not already running.
+    Returns the URL of the web app where captured photos can be viewed, managed, or downloaded. 
+    """
+
+    result = subprocess.run(["lsof", "-t", "-i:5003"], 
+                            capture_output=True, text=True)
+
+    if not result.stdout:
+        # Stream is not running, start it 
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        photos_app_script = os.path.join(script_dir, "photos.sh")
+
+        # Make sure the script is executable 
+        subprocess.run(["chmod", "+x", photos_app_script], check=False)
+
+        # Start the depth stream in the background 
+        subprocess.Popen([photos_app_script],
+                         stdout=subprocess.PIPE, 
+                         stderr=subprocess.PIPE)
+        
+        # Give it a moment to start 
+        time.sleep(2) 
+    return f"[Click here](http://{device_ip}:5003)"
+
+@tool
+def motor_control_interface_app() -> str:
+    """
+    provies the motor control interface is not already running.
+    Returns the URL of the web app where captured photos can be viewed, managed, or downloaded. 
+    """
+
+    result = subprocess.run(["lsof", "-t", "-i:8081"], 
+                            capture_output=True, text=True)
+
+    # Check if something is already running on port 8081
+    result = subprocess.run(["lsof", "-t", "-i:8081"], capture_output=True, text=True)
+
+    if not result.stdout:
+        # Application is not running, so launch it using streamlir
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        motor_control_interface_script = os.path.join(script_dir, "servo_app.py")
+
+        # Launch using the streamlir command with the specified server port
+        subprocess.Popen([
+            "python3",
+            "-m",
+            "streamlit",
+            "run",
+            motor_control_interface_script,
+            "--server.port", "8081",
+            "--server.headless", "True"
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        # Allow some time for the service to start up
+        time.sleep(2)
+    return f"[Click here](http://{device_ip}:8081)"
 
 @tool
 def vision_model(prompt: str) -> str:
@@ -172,24 +229,143 @@ def vision_model(prompt: str) -> str:
     response = camera_vision(prompt)
     return response
 
+
+@tool
+def move_servo(motor: int, target_angle: float, speed: Optional[Literal["low", "medium", "high"]] = None) -> str:
+    """
+    Moves a servo to the specified angle.
+    
+    Args:
+        motor (int): servo ID.
+        target_angle (float): Target angle in degrees.
+        speed (str, optional): "low", "medium", or "high". Defaults to preset speed if omitted.
+    
+    Returns:
+        str: Confirmation message.
+    """
+    channel = motor - 1
+    servo.move_servo(channel=channel, target_angle=target_angle, speed=speed)
+    return f"Motor {motor} was moved to {target_angle}"
+
+
+@tool
+def set_default_angle(motor: int, angle: float) -> str:
+    """
+    Sets the default angle for a servo.
+    
+    Args:
+        motor (int): servo ID.
+        angle (float): Default angle in degrees.
+    
+    Returns:
+        str: Confirmation message.
+    """
+    channel = motor - 1
+    servo.set_default_angle(channel=channel, angle=angle)
+    return f"Changed default angle of Motor {motor} to {angle} degrees. It will now initialize to {angle} degrees."
+
+
+@tool
+def set_default_speed(motor: int, speed: Literal["low", "medium", "high"]) -> str:
+    """
+    Updates the default speed for a servo.
+    
+    Args:
+        motor (int): servo ID.
+        speed (str): "low", "medium", or "high".
+    
+    Returns:
+        str: Confirmation message.
+    """
+    channel = motor - 1
+    servo.set_default_speed(channel=channel, speed=speed)
+    return f"Changed speed of Motor {motor} to {speed}."
+
+
+@tool
+def initialize_all_servos() -> str:
+    """
+    Resets all servos to their default positions.
+    
+    Returns:
+        str: Confirmation message.
+    """
+    servo.reset_all()
+    return "All servo motors have been reset to their default positions."
+
+
+@tool
+def initialize_servo_to_default(motor: int) -> str:
+    """
+    Resets one servo to its default settings.
+    
+    Args:
+        motor (int): 1-indexed servo ID.
+    
+    Returns:
+        str: Confirmation message.
+    """
+    channel = motor - 1
+    servo.reset_channel(channel)
+    return f"Motor {motor} has been reset to its default position."
+
+
+@tool
+def get_motor_info(query: str) -> str:
+    """
+    Retrieves servo motor info from the RAG system.
+    Args:
+        query (str): Query string about servo based on the user's query
+    Returns:
+        str: Information from the knowledge base.
+    """
+    import subprocess
+    
+    try:
+        # Run the servo_rag.py script as a subprocess with the query as an argument
+
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        script_path = os.path.join(script_dir, "servo/servo_rag.py")
+
+        result = subprocess.run(
+            ["python3", script_path, query], 
+            capture_output=True, 
+            text=True,
+            check=True
+        )
+        
+        # Get the output from the subprocess
+        output = result.stdout.strip()
+        
+        # If there's no output, return a message
+        if not output:
+            return "No information found for your query."
+        
+        return output
+    
+    except subprocess.CalledProcessError as e:
+        # Handle any errors from the subprocess
+        error_message = f"Error executing query: {e}"
+        if e.stderr:
+            error_message += f"\nDetails: {e.stderr}"
+        return error_message
+    except Exception as e:
+        # Handle any other exceptions
+        return f"An error occurred while processing your query: {str(e)}"
+
+
+
 llm = ChatOllama(
-    model = "qwen2.5:14b",
+    model = "qwen2.5:7b",
     temperature = 0,
 )
 
 graph = create_react_agent(
     llm,
-    tools=[camera_feed, depth_feed, vision_model],
-    prompt="""
-You are to act as assistant acting as a robot. Use the following tools based on the user's intent:
+    tools=[camera_feed, depth_feed, vision_model, photos_feed, motor_control_interface_app, move_servo, set_default_angle, set_default_speed, 
+           initialize_all_servos, initialize_servo_to_default, get_motor_info],
 
-- Use the `vision_model` tool to interpret anything the user asks about what they 'see', 'observe', or what is 'visible'. This includes identifying objects, describing scenes, or analyzing visual input. Pass the user’s prompt directly to the tool.
-
-- If the user asks to view the live camera feed, use `camera_feed` and return the link.
-
-- If the user asks to view the depth feed (spatial awareness), use `depth_feed` and return the link.
-
-Always respond clearly and return the relevant tool output. Do not make assumptions; rely on the tools to answer queries."""
+    prompt=fermia_prompt
 )
 
 
