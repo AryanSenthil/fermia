@@ -10,7 +10,7 @@ import socket
 from typing import Literal, Optional
 from prompt import fermia_prompt
 
-from servo.servo import ServoController
+from fermia_servo import ServoController
 
 servo = ServoController()
 
@@ -325,7 +325,7 @@ def get_motor_info(query: str) -> str:
         # Run the servo_rag.py script as a subprocess with the query as an argument
 
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        script_path = os.path.join(script_dir, "servo/servo_rag.py")
+        script_path = os.path.join(script_dir, "servo_rag.py")
 
         result = subprocess.run(
             ["python3", script_path, query], 

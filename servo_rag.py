@@ -16,7 +16,7 @@ from langgraph.prebuilt import ToolNode
 from langchain.tools.retriever import create_retriever_tool
 import sys 
 
-from servo import ServoController
+from fermia_servo import ServoController
 
 def get_servo_controller():
     try:
