@@ -144,10 +144,10 @@ class ServoController:
             step = 1
             delay = 0.03
         elif speed == "high":  # Fast
-            step = 5
+            step = 1
             delay = 0.005
         else:  # Medium (default)
-            step = 2
+            step = 1
             delay = 0.02
         
         # Get current angle

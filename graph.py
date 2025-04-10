@@ -1,3 +1,6 @@
+
+# graph.py
+
 from control import Program
 from langchain_ollama import ChatOllama
 from langgraph.prebuilt import create_react_agent
@@ -9,10 +12,19 @@ import signal
 import socket
 from typing import Literal, Optional
 from prompt import fermia_prompt
+from langgraph.checkpoint.memory import MemorySaver 
+from langgraph.graph import StateGraph, MessagesState
 
 from fermia_servo import ServoController
 
 servo = ServoController()
+
+# Get the hostname
+hostname = socket.gethostname()
+
+# Get the IP address
+device_ip = socket.gethostbyname(hostname)
+
 
 # Function used by tools - is_realsense_connected()
 def is_realsense_connected():
@@ -70,13 +82,6 @@ def stop_process_on_port(port):
     except Exception as e:
         print(f"Error stopping process on port {port}: {e}")
         return False
-
-
-# Get the hostname
-hostname = socket.gethostname()
-
-# Get the IP address
-device_ip = socket.gethostbyname(hostname)
 
 @tool
 def camera_feed() -> str:
@@ -360,15 +365,55 @@ llm = ChatOllama(
     temperature = 0,
 )
 
+# Set up available tools
+tools = [
+    camera_feed, depth_feed, vision_model, photos_feed, 
+    motor_control_interface_app, move_servo, set_default_angle, 
+    set_default_speed, initialize_all_servos, initialize_servo_to_default, 
+    get_motor_info
+]
+
+# Create the memory persistence layer
+memory = MemorySaver()
+
+# Create the ReAct agent with the tools and prompt
 graph = create_react_agent(
     llm,
-    tools=[camera_feed, depth_feed, vision_model, photos_feed, motor_control_interface_app, move_servo, set_default_angle, set_default_speed, 
-           initialize_all_servos, initialize_servo_to_default, get_motor_info],
-
-    prompt=fermia_prompt
+    tools=tools,
+    prompt=fermia_prompt,
+    checkpointer=memory
 )
 
+def invoke_our_graph(messages=None, thread_id=None):
+    """
+    Invoke the LangGraph agent iwth conversation history and thread management. 
+    
+    Args:
+        messages (list): List of message dictionaries with 'role' and content' keys
+        thread_id (str, optional): Thread ID for persisting conversation state
+        
+    Returns:
+        dict: The response from the LangGraph agent 
+    """
 
-def invoke_our_graph(st_messages):
-    return graph.invoke({"messages": st_messages})
+    # Format the messages for LangGraph if provided 
+    formatted_messages = []
 
+    if messages:
+        # Convert the messages to the format expected by Langgraph 
+        for msg in messages:
+            if msg["role"] == "user":
+                formatted_messages.append({"type": "human", "content": msg["content"]})
+            elif msg["role"] == "assistant":
+                formatted_messages.append({"type": "ai", "content": msg["content"]})
+
+    # Invoke the graph with the formatted messages and thread ID
+    if thread_id:
+        return graph.invoke(
+            {"messages": formatted_messages},
+            config={"configurable": {"thread_id": thread_id}}
+        )
+    else:
+        return graph.invoke({"messages": formatted_messages})
+
+            

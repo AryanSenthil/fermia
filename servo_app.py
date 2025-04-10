@@ -5,7 +5,7 @@ import threading
 import json
 import redis
 
-from servo.servo import ServoController
+from fermia_servo import ServoController
 
 # Initialize the servo controller
 @st.cache_resource
